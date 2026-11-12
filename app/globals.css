@@ -34,10 +34,8 @@ table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eef0f4; white-space: nowrap; }
 th { background: #f9fafb; font-weight: 600; }
 
-.badge { padding: 2px 8px; border-radius: 999px; font-size: 12px; cursor: help; }
-.badge.active { background: #dcfce7; color: #166534; }
-.badge.inactive { background: #f3f4f6; color: #4b5563; }
-.badge.suspended { background: #fee2e2; color: #991b1b; }
+.badge { padding: 2px 8px; border-radius: 999px; font-size: 12px; cursor: help; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+.badge.active, .badge.inactive, .badge.suspended { background: #f3f4f6; color: #374151; }
 
 .city-list { background: #fff; padding: 16px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); display: grid; gap: 8px; }
 .city-row { display: grid; grid-template-columns: 110px 1fr 30px; align-items: center; gap: 10px; font-size: 14px; }

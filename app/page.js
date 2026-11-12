@@ -133,21 +133,6 @@ export default function Home() {
     load();
   };
 
-  const handleStatusChange = async (customerId, nextStatus) => {
-    const res = await fetch(`/api/customers/${customerId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: nextStatus }),
-    });
-    if (!res.ok) {
-      const d = await res.json();
-      setError((d.error || "Status update nahi ho saka") + (d.detail ? ` — ${d.detail}` : ""));
-      return;
-    }
-    const updated = await res.json();
-    setCustomers((prev) => prev.map((c) => (c.customer_id === customerId ? updated : c)));
-  };
-
   if (!authenticated) {
     return (
       <main className="login-page">
@@ -229,15 +214,9 @@ export default function Home() {
                 <td>{c.package_id}</td>
                 <td>{c.connection_type}</td>
                 <td>
-                  <select
-                    value={c.status}
-                    title={STATUS_HELP[c.status]}
-                    onChange={(e) => handleStatusChange(c.customer_id, e.target.value)}
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
+                  <span className={`badge ${c.status}`} title={STATUS_HELP[c.status]}>
+                    {c.status}
+                  </span>
                 </td>
                 <td>
                   <button onClick={() => openEdit(c)}>Edit</button>
