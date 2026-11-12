@@ -102,23 +102,29 @@ export default function Home() {
   }, [customers, search, city, status]);
 
   const openAdd = () => { setForm(emptyForm); setEditId(null); setError(""); };
-  const openEdit = (c) => { setForm(c); setEditId(c.customer_id); setError(""); };
+  const openEdit = (c) => { setForm({ ...c, status: c.status || "active" }); setEditId(c.customer_id); setError(""); };
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSave = async (e) => {
     e.preventDefault();
-    const res = await fetch(editId ? `/api/customers/${editId}` : "/api/customers", {
-      method: editId ? "PUT" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    if (!res.ok) {
-      const d = await res.json();
-      setError((d.error || "Something went wrong") + (d.detail ? ` — ${d.detail}` : ""));
-      return;
+    try {
+      const res = await fetch(editId ? `/api/customers/${editId}` : "/api/customers", {
+        method: editId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError((data.error || "Something went wrong") + (data.detail ? ` — ${data.detail}` : ""));
+        return;
+      }
+      setCustomers((prev) => editId
+        ? prev.map((c) => (c.customer_id === editId ? data : c))
+        : [...prev, data]);
+      setForm(null);
+    } catch {
+      setError("Server se connect nahi ho saka.");
     }
-    setForm(null);
-    load();
   };
 
   const handleDelete = async (c) => {
