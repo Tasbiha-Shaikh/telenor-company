@@ -12,7 +12,7 @@ function parseStatus(value) {
   return { value: normalized, invalid: false };
 }
 
-// GET /api/customers  ->  saaray customers
+// GET /api/customers -> all customers
 export async function GET() {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,11 +22,11 @@ export async function GET() {
     const rows = await sql`SELECT * FROM customers ORDER BY customer_id`;
     return NextResponse.json(rows.map(normalize));
   } catch (err) {
-    return NextResponse.json(dbError("Database se data nahi mila", err), { status: 500 });
+    return NextResponse.json(dbError("Could not load customer data from the database", err), { status: 500 });
   }
 }
 
-// POST /api/customers  ->  naya customer database mai likhna
+// POST /api/customers -> create a customer
 export async function POST(request) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -49,7 +49,7 @@ export async function POST(request) {
     }
 
     const sql = getSql();
-    // customer_id database khud banati hai (C1201, C1202, ...)
+    // Generate the next customer ID (C1201, C1202, ...).
     const rows = await sql`
       INSERT INTO customers
         (customer_id, name, gender, age, city, province, phone, email,
@@ -65,6 +65,6 @@ export async function POST(request) {
       RETURNING *`;
     return NextResponse.json(normalize(rows[0]), { status: 201 });
   } catch (err) {
-    return NextResponse.json(dbError("Customer save nahi ho saka", err), { status: 500 });
+    return NextResponse.json(dbError("Could not save the customer", err), { status: 500 });
   }
 }

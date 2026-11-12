@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 
 const STATUS_HELP = {
-  active: "SIM chal rahi hai, service use ho rahi hai",
-  inactive: "SIM kaafi dino se use nahi hui (company ne roki nahi)",
-  suspended: "Company ne service temporarily band ki hui hai",
+  active: "The SIM is active and in use",
+  inactive: "The SIM has not been used recently",
+  suspended: "The service has been temporarily suspended",
 };
 const STATUS_OPTIONS = ["active", "inactive", "suspended"];
 
@@ -24,7 +24,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("");
   const [status, setStatus] = useState("");
-  const [form, setForm] = useState(null); // null = modal band
+  const [form, setForm] = useState(null); // null means the modal is closed
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState("");
 
@@ -45,7 +45,7 @@ export default function Home() {
       }
       setAuthenticated(true);
     } catch {
-      setLoginError("Server se connect nahi ho saka.");
+      setLoginError("Could not connect to the server.");
     } finally {
       setLoggingIn(false);
     }
@@ -62,13 +62,13 @@ export default function Home() {
       const res = await fetch("/api/customers");
       const data = await res.json();
       if (!res.ok || !Array.isArray(data)) {
-        setError((data.error || "Data load nahi ho saka") + (data.detail ? ` — ${data.detail}` : ""));
+        setError((data.error || "Could not load customer data") + (data.detail ? ` — ${data.detail}` : ""));
         return;
       }
       setCustomers(data);
       setError("");
     } catch {
-      setError("Server se connect nahi ho saka.");
+      setError("Could not connect to the server.");
     }
   };
 
@@ -76,7 +76,7 @@ export default function Home() {
     if (authenticated) load();
   }, [authenticated]);
 
-  // Stats (customers se hi calculate hote hain)
+  // Calculate dashboard statistics from the loaded customers.
   const stats = useMemo(() => {
     const cities = {};
     customers.forEach((c) => { cities[c.city] = (cities[c.city] || 0) + 1; });
@@ -90,7 +90,7 @@ export default function Home() {
     };
   }, [customers]);
 
-  // Search + filters
+  // Search and filters
   const filtered = useMemo(() => {
     const s = search.toLowerCase();
     return customers.filter(
@@ -123,12 +123,12 @@ export default function Home() {
         : [...prev, data]);
       setForm(null);
     } catch {
-      setError("Server se connect nahi ho saka.");
+      setError("Could not connect to the server.");
     }
   };
 
   const handleDelete = async (c) => {
-    if (!window.confirm(`${c.name} ko delete karna hai?`)) return;
+    if (!window.confirm(`Delete ${c.name}?`)) return;
     await fetch(`/api/customers/${c.customer_id}`, { method: "DELETE" });
     load();
   };
@@ -177,7 +177,7 @@ export default function Home() {
       </div>
 
       <div className="toolbar">
-        <input placeholder="Name ya phone se search..." value={search}
+        <input placeholder="Search by name or phone..." value={search}
           onChange={(e) => setSearch(e.target.value)} />
         <select value={city} onChange={(e) => setCity(e.target.value)}>
           <option value="">All cities</option>
@@ -186,7 +186,7 @@ export default function Home() {
           ))}
         </select>
         <select value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">All status</option>
+          <option value="">All statuses</option>
           <option value="active">active</option>
           <option value="inactive">inactive</option>
           <option value="suspended">suspended</option>
@@ -194,7 +194,7 @@ export default function Home() {
         <button className="primary" onClick={openAdd}>+ Add customer</button>
       </div>
 
-      <p className="count">{filtered.length} customers dikh rahe hain</p>
+      <p className="count">{filtered.length} customers shown</p>
 
       <div className="table-wrap">
         <table>
@@ -228,7 +228,7 @@ export default function Home() {
         </table>
       </div>
 
-      <h2>City-wise customers</h2>
+      <h2>Customers by city</h2>
       <div className="city-list">
         {stats.cities.map(([name, n]) => (
           <div key={name} className="city-row">

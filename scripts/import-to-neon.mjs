@@ -1,22 +1,22 @@
-// JSON file ka saara data Neon database mai likhne ki script
-// Chalane ka tareeqa (project folder se):
+// Import all JSON data into the Neon database.
+// Run from the project directory:
 //   node --env-file=.env.local scripts/import-to-neon.mjs
 
 import { readFile } from "node:fs/promises";
 import { neon } from "@neondatabase/serverless";
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL nahi mili. .env.local file check karein.");
+  throw new Error("DATABASE_URL is missing. Check your .env.local file.");
 }
 
 const sql = neon(process.env.DATABASE_URL);
 
-// 1. JSON file padhein
+// 1. Read the JSON file.
 const file = await readFile("data/telenor_200_customers.json", "utf-8");
 const { customers } = JSON.parse(file);
-console.log(`JSON mai ${customers.length} customers mile.`);
+console.log(`Found ${customers.length} customers in the JSON file.`);
 
-// 2. Table banayein (agar pehle se hai to kuch nahi hoga)
+// 2. Create the table if it does not already exist.
 await sql`
   CREATE TABLE IF NOT EXISTS customers (
     customer_id TEXT PRIMARY KEY,
@@ -36,14 +36,14 @@ await sql`
   )
 `;
 
-// 3. Saara data ek hi query se database mai likhein
-//    (customer_id pehle se ho to dobara nahi likhta)
+// 3. Insert all data in one query.
+//    Existing customer IDs are skipped.
 await sql`
   INSERT INTO customers
   SELECT * FROM jsonb_populate_recordset(NULL::customers, ${JSON.stringify(customers)}::jsonb)
   ON CONFLICT (customer_id) DO NOTHING
 `;
 
-// 4. Check karein
+// 4. Verify the total.
 const result = await sql`SELECT COUNT(*)::int AS total FROM customers`;
-console.log(`Database mai ab total customers: ${result[0].total}`);
+console.log(`The database now contains ${result[0].total} customers.`);

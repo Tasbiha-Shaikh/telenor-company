@@ -12,8 +12,8 @@ function parseStatus(value) {
   return { value: normalized, invalid: false };
 }
 
-// PUT /api/customers/C1001  ->  customer update
-// (jo field na bheji jaye, us ki purani value rehti hai)
+// PUT /api/customers/C1001 -> update a customer.
+// Fields that are not provided keep their existing values.
 export async function PUT(request, { params }) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -56,11 +56,11 @@ export async function PUT(request, { params }) {
     }
     return NextResponse.json(normalize(rows[0]));
   } catch (err) {
-    return NextResponse.json(dbError("Update nahi ho saka", err), { status: 500 });
+    return NextResponse.json(dbError("Could not update the customer", err), { status: 500 });
   }
 }
 
-// DELETE /api/customers/C1001  ->  customer delete
+// DELETE /api/customers/C1001 -> delete a customer
 export async function DELETE(request, { params }) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -74,6 +74,6 @@ export async function DELETE(request, { params }) {
     }
     return NextResponse.json({ deleted: id });
   } catch (err) {
-    return NextResponse.json(dbError("Delete nahi ho saka", err), { status: 500 });
+    return NextResponse.json(dbError("Could not delete the customer", err), { status: 500 });
   }
 }
