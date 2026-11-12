@@ -148,7 +148,6 @@ export default function Home() {
           <button className="primary login-button" disabled={loggingIn}>
             {loggingIn ? "Signing in..." : "Sign in"}
           </button>
-          <p className="login-hint">Demo: admin / telenor123</p>
         </form>
       </main>
     );
