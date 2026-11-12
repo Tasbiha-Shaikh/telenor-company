@@ -3,6 +3,14 @@ import { getSql, normalize, num, str, dbError } from "@/lib/db";
 import { isAuthenticated } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
+const VALID_STATUS = new Set(["active", "inactive", "suspended"]);
+
+function parseStatus(value) {
+  if (value === undefined || value === null || value === "") return { value: null, invalid: false };
+  const normalized = String(value).trim().toLowerCase();
+  if (!VALID_STATUS.has(normalized)) return { value: null, invalid: true };
+  return { value: normalized, invalid: false };
+}
 
 // PUT /api/customers/C1001  ->  customer update
 // (jo field na bheji jaye, us ki purani value rehti hai)
@@ -20,6 +28,10 @@ export async function PUT(request, { params }) {
     if ([age, spend, usage].some(Number.isNaN)) {
       return NextResponse.json({ error: "age, spend and usage must be numbers" }, { status: 400 });
     }
+    const status = parseStatus(b.status);
+    if (status.invalid) {
+      return NextResponse.json({ error: "status must be active, inactive or suspended" }, { status: 400 });
+    }
 
     const sql = getSql();
     const rows = await sql`
@@ -35,7 +47,7 @@ export async function PUT(request, { params }) {
         connection_type = COALESCE(${str(b.connection_type)}, connection_type),
         monthly_spend_pkr = COALESCE(${spend}, monthly_spend_pkr),
         monthly_data_usage_gb = COALESCE(${usage}, monthly_data_usage_gb),
-        status = COALESCE(${str(b.status)}, status)
+        status = COALESCE(${status.value}, status)
       WHERE customer_id = ${id}
       RETURNING *`;
 

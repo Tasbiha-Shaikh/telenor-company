@@ -3,6 +3,14 @@ import { getSql, normalize, num, str, dbError } from "@/lib/db";
 import { isAuthenticated } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
+const VALID_STATUS = new Set(["active", "inactive", "suspended"]);
+
+function parseStatus(value) {
+  if (value === undefined || value === null || value === "") return { value: null, invalid: false };
+  const normalized = String(value).trim().toLowerCase();
+  if (!VALID_STATUS.has(normalized)) return { value: null, invalid: true };
+  return { value: normalized, invalid: false };
+}
 
 // GET /api/customers  ->  saaray customers
 export async function GET() {
@@ -35,6 +43,10 @@ export async function POST(request) {
     if ([age, spend, usage].some(Number.isNaN)) {
       return NextResponse.json({ error: "age, spend and usage must be numbers" }, { status: 400 });
     }
+    const status = parseStatus(b.status);
+    if (status.invalid) {
+      return NextResponse.json({ error: "status must be active, inactive or suspended" }, { status: 400 });
+    }
 
     const sql = getSql();
     // customer_id database khud banati hai (C1201, C1202, ...)
@@ -49,7 +61,7 @@ export async function POST(request) {
          ${str(b.province) ?? ""}, ${str(b.phone)}, ${str(b.email) ?? ""},
          ${str(b.package_id) ?? "PKG001"}, ${str(b.connection_type) ?? "prepaid"},
          ${str(b.join_date) ?? new Date().toISOString().slice(0, 10)},
-         ${spend}, ${usage}, ${str(b.status) ?? "active"})
+         ${spend}, ${usage}, ${status.value ?? "active"})
       RETURNING *`;
     return NextResponse.json(normalize(rows[0]), { status: 201 });
   } catch (err) {
