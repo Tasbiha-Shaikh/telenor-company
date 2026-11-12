@@ -113,7 +113,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError((data.error || "Something went wrong") + (data.detail ? ` — ${data.detail}` : ""));
         return;
@@ -122,8 +122,10 @@ export default function Home() {
         ? prev.map((c) => (c.customer_id === editId ? data : c))
         : [...prev, data]);
       setForm(null);
-    } catch {
-      setError("Could not connect to the server.");
+    } catch (error) {
+      setError(error instanceof TypeError
+        ? "Could not connect to the server. Please try again."
+        : "Could not save the customer. Please try again.");
     }
   };
 
