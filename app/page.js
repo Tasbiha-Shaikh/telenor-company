@@ -223,11 +223,9 @@ export default function Home() {
                 <td>{c.package_id}</td>
                 <td>{c.connection_type}</td>
                 <td>
-                  <span className={`badge ${c.status}`} title={STATUS_HELP[c.status]}>
-                    {c.status}
-                  </span>
                   <select
                     value={c.status}
+                    title={STATUS_HELP[c.status]}
                     onChange={(e) => handleStatusChange(c.customer_id, e.target.value)}
                   >
                     {STATUS_OPTIONS.map((s) => (
